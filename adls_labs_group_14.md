@@ -14,3 +14,8 @@ Mase IR - The key benefit of Mase IR is that it offers a common abstraction laye
 
 What we essentially do is to take a model, generate a MaseGraph of it, such that we can execute passes. These passes are able to analyse or transform nodes in the graph.
 
+Writing an analysis pass can be done using the `get_logger` API from Machop; in this tutorial we specifically use to count the number of dropout layer (6 of them). This is important as they only have meaning in the training stage, and can be removed for inference.
+
+Once those have been picked out, the graph is again exported to have further optimisations done on it.
+
+## Tutorial 2
