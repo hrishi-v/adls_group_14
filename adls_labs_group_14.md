@@ -19,3 +19,31 @@ Writing an analysis pass can be done using the `get_logger` API from Machop; in 
 Once those have been picked out, the graph is again exported to have further optimisations done on it.
 
 ## Tutorial 2
+
+### Key Definitions and Summary
+
+This tutorial focuses on how we finetune pretrained models from HuggingFace. In this example we do so with two options - first, SFT (Supervised Fine Tuning), second, LoRA ([Low-Rank Adaptation](https://arxiv.org/abs/2106.09685)). The model is for sentiment analysis of the IMDb dataset.
+
+### What we do
+
+We take the tokenized IMDb dataset, and the model is loaded as a MaseGraph. We can then apply both methods of finetuning with the Machop `trainer` method.
+
+With tools available to us in Mase, we can inject the LoRA adapter and perform a pass of the graph. We generate a custom MaseGraph using arguments.
+
+
+**Task:** Remove the `attention_mask` and `labels` arguments from the `hf_input_names` list and re-run the following cell. Use `mg.draw()` to visualize the grah in each case. Can you see any changes in the graph topology? Can you explain why this happens?
+
+When the graph is drawn without the attention mask and label arguments, those values aren't passed into the model, and don't appear on the graph topology.
+
+LoRA allows us to achieve high accuracy whilst limiting memory usage, allowing control of parameters whilst fine-tuning memory hungry models like LLMs.
+
+# Lab 1
+
+## Tutorial 3
+
+### Key Definitions and Summary
+
+
+## Tutorial 4
+
+
