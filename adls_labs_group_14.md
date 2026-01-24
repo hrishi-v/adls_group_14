@@ -41,10 +41,10 @@ LoRA allows us to achieve high accuracy whilst limiting memory usage, allowing c
 
 ## Tutorial 3
 
-![Alt text](imgs/tutorial3_output.png)
+![Alt text](labs_media/tutorial3_output.png)
 
 
 ## Tutorial 4
 
-![Alt text](imgs/tutorial4_output.png)
+![Alt text](labs_media/tutorial4_output.png)
 
