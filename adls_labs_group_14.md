@@ -41,7 +41,13 @@ LoRA allows us to achieve high accuracy whilst limiting memory usage, allowing c
 
 ## Tutorial 3
 
-![Alt text](labs_media/tutorial3_output.png)
+### Key Definitions and Summary
+
+We take a finetuned model and run the PTO (Post-Training Quantization) pass from Mase on it. This will reduce accuracy, whilst also reducing the precision of weights and biases, such that the model size reduces.
+
+We then try to restore the accuracy from before quantization using QAT (Quantization-Aware Training). This is 
+
+![Graph to show the change of accuracy against number of fractional bits](labs_media/tutorial3_output.png)
 
 
 ## Tutorial 4
