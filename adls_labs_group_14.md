@@ -41,9 +41,10 @@ LoRA allows us to achieve high accuracy whilst limiting memory usage, allowing c
 
 ## Tutorial 3
 
-### Key Definitions and Summary
+![Alt text](imgs/tutorial3_output.png)
 
 
 ## Tutorial 4
 
+![Alt text](imgs/tutorial4_output.png)
 
