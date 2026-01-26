@@ -51,7 +51,7 @@ We take a finetuned model and run the PTO (Post-Training Quantization) pass from
 
 We then try to restore the accuracy from before quantization using QAT (Quantization-Aware Training). This includes the model back into the training loop after the quantization pass, such that the model can optimize the new, lower-resolution weights for the dataset. As we can see from the results, this step results in a better accuracy than even before PTQ, with a lower memory requirement.
 
-![Alt text](tutoriall3_output.png)
+![Alt text](labs/tutorial3_output.png)
 
 
 ## Tutorial 4
