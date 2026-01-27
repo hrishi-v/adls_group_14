@@ -51,8 +51,19 @@ We take a finetuned model and run the PTO (Post-Training Quantization) pass from
 
 We then try to restore the accuracy from before quantization using QAT (Quantization-Aware Training). This includes the model back into the training loop after the quantization pass, such that the model can optimize the new, lower-resolution weights for the dataset. As we can see from the results, this step results in a better accuracy than even before PTQ, with a lower memory requirement.
 
-![Alt text](labs/tutorial3_output.png)
+From the weights/biases present in the finetuned model, we observed that the range of values primarily lied between -1 and 1, allowing us to utilise very few bits allocated for the integer. This limited our search space to between 1 and 10 integer bits, where we found using more than 5 integer bits didn't provide a greater post-PTQ accuracy.
 
+![Graph to show how the number of integer bits affect the accuracy.](labs_media/tut3_integer_bits.png)
+
+Graph to show how the number of integer bits affect the accuracy.
+
+Having determined the minimum number of bits required to preserve integer precision, we could allocate up to all 27 remaining bits for fractional precision. When search that space, we found our first peak of post-QAT accuracy at 5 fractional bits, with little improvement from beyond even 3 fractional bits of precision - meaning we could essentially use a Q5.3 if really pressed by memory constraints.
+
+![Graph to show how the number of integer bits affect the accuracy.](labs_media/tut3_fractional_bits.png)
+
+Graph to show how the number of fractional bits affect the accuracy.
+
+Overall though, from the graphs, we can see that QAT really improves our accuracy across the board, especially so with lower number of integer bits, so much so that it can really seem agnostic to the number of integer bits - from 2 up to 7 bits we see less than a percentile improvement.
 
 ## Tutorial 4
 
