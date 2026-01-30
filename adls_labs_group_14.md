@@ -67,5 +67,17 @@ Overall though, from the graphs, we can see that QAT really improves our accurac
 
 ## Tutorial 4
 
-![Alt text](labs_media/tutorial4_output.png)
+### Key Definitions and Summary
 
+Pruning is used to reduce the size and complexity of the neural networks we build, by removing parameters or structural components. The goal is to produce a more efficient model that maintains a lot of the original model's performance.
+
+- Structured Pruning: removes whole structures from the network.
+- Unstructed Pruning: removes individual weights or connections from the network.
+
+![Graph to show how Random and L1-Norm pruning affect accuracy.](labs_media/tutorial_4_output.png)
+
+Graph to show how Random and L1-Norm pruning affect accuracy.
+
+From the graph above, we can see that L1-Norm pruning is significantly more robust, with higher accuracy than random pruning for all values of sparsity.
+
+Finetuning shows a massive recovery for random pruning at lower sparsity levels (0.1-0.5) but L1-norm requires less finetuning help until very high levels of sparsity levels.

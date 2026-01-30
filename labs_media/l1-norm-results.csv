@@ -1,0 +1,10 @@
+Sparsity,Method,Post-Pruning Accuracy,Finetuned Accuracy
+0.1,l1-norm,0.8444,0.85952
+0.2,l1-norm,0.84064,0.8576
+0.3,l1-norm,0.83476,0.85396
+0.4,l1-norm,0.81228,0.84648
+0.5,l1-norm,0.78668,0.84
+0.6,l1-norm,0.74044,0.82564
+0.7,l1-norm,0.60076,0.80896
+0.8,l1-norm,0.5158,0.76512
+0.9,l1-norm,0.52048,0.60672
