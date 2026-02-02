@@ -67,5 +67,12 @@ Overall though, from the graphs, we can see that QAT really improves our accurac
 
 ## Tutorial 4
 
-![Alt text](labs_media/tutorial4_output.png)
+![Pruning sparsity vs IMDb accuracy](labs_media/tutorial4_output.png)
 
+**Figure:** Effect of pruning sparsity on IMDb accuracy for Random and L1-norm pruning.
+
+As sparsity increases, accuracy drops for both methods, reflecting the loss of model capacity as a larger fraction of parameters are removed. 
+
+Random pruning leads to a rapid drop in performance beyond sparsity 0.5, with accuracy collapsing to near random choice at sparsities of 0.7 and above. This indicates that random removal of weights quickly disrupts critical model structure.
+
+L1-norm pruning has a higher accuracy for all sparsity levels. Performance drops more gradually, remaining somewhat stable up to sparsity 0.7 before a sharp decline at 0.9. This suggests that magnitude based pruning is more effective in preserving informative parameters by preferentially removing weights with lower contribution.
