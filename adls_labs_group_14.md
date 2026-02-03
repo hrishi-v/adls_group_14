@@ -100,18 +100,35 @@ The runtime of the optimised model is higher, when run for 5 iterations. However
 
 This demonstrates that the compilation does indeed make the model run faster on average, but at 5 iterations the compilation overhead isn't outweighed by the model speedup.
 
-| Hardware | Iterations | Baseline Runtime (s) | Optimised Runtime (s) | Observation |
+| Hardware | Iterations | Baseline Runtime (s) | Optimised Runtime (s) | Speedup |
 | :--- | :--- | :--- | :--- | :--- |
-| **CPU** | 5 | 1.8944 | 11.4648 | Compilation overhead outweighs speedup. |
-| **CPU** | 50 | 1.5581 | 1.1766 | Compilation overhead is amortized over more runs. |
-| **GPU (RTX 4080)**| 5 | 0.0261 | 0.0205 | Improvements are immediate but smaller. |
-| **GPU (RTX 4080)**| 50 | 0.0251 | 0.0205 | Performance gains remain consistent |
-| **GPU (RTX 4080)**| 200 | 0.0250 | 0.0206 | No further scaling of benefits with more runs.|
+| **CPU** | 5 | 1.8944 | 11.4648 | 0.17x |
+| **CPU** | 50 | 1.5581 | 1.1766 | 1.32x |
+| **CPU** | 200 | 1.6352 | 1.3449 | 1.22x |
+| **GPU (RTX 4080)**| 5 | 0.0261 | 0.0205 | 1.27x |
+| **GPU (RTX 4080)**| 50 | 0.0251 | 0.0205 | 1.22x |
+| **GPU (RTX 4080)**| 200 | 0.0250 | 0.0206 | 1.21x |
 
-On a GPU, the runtime does improve, but by a much smaller amount, and the compilation benefits aren't scaled on increasing numbers of runs. This implies either that the baseline GPU performance was already highly efficient, leaving less room for JIT improvements.
+On a GPU, the runtime does improve, but by a smaller amount, and the compilation benefits aren't scaled on increasing numbers of runs. This implies either that the baseline GPU performance was already highly efficient, leaving less room for JIT improvements.
 
 ### Kernel Fusion
 
 This is advantageous as it reduces the number of memory accesses as well as the number of kernel launches, making numerous small operations cheaper by fusing them together. 
 
 For example, a linear layer followed immediately by a ReLU operation on the data, need not be executed by two separate kernels (with a corresponding read and write back to global memory for each), and instead have it's intermediate values in registers whilst the ReLU is operated, saving bandwidth to the global memory on GPU.
+
+PyTorch does provide these fused kernels for common operations, an example being SDPA (Scaled Dot-Product Attention).
+
+| Hardware   |   Iterations |   Original Runtime (s) |   Fused Runtime(s) |   Speedup |
+|:---------|-------------:|---------------:|------------:|----------:|
+| CPU      |            5 |       0.005323 |    0.003605 |  1.476353 |
+| CPU      |           50 |       0.005025 |    0.003576 |  1.405349 |
+| CPU      |          200 |       0.005110 |    0.003851 |  1.326901 |
+| GPU (RTX 4080)     |            5 |       0.000136 |    0.000071 |  1.920646 |
+| GPU (RTX 4080)     |           50 |       0.000068 |    0.000019 |  3.607179 |
+| GPU (RTX 4080)     |          200 |       0.000070 |    0.000019 |  3.611273 |
+
+### Custom Kernels
+
+
+These are the most powerful way to optimise code performance, but require a bit more legwork. We should write these kernels manually, when we want to implement a custom operation, as opposed to ones provided by PyTorch, Intel or NVIDIA as some examples.
