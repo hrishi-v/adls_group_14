@@ -85,3 +85,33 @@ Random pruning leads to a rapid drop in performance beyond sparsity 0.5, with ac
 L1-norm pruning has a higher accuracy for all sparsity levels. Performance drops more gradually, remaining somewhat stable up to sparsity 0.7 before a sharp decline at 0.9. This suggests that magnitude based pruning is more effective in preserving informative parameters by preferentially removing weights with lower contribution.
 
 Finetuning shows a massive recovery for random pruning at lower sparsity levels (0.1-0.5) but L1-norm requires less finetuning help until very high levels of sparsity levels, at which point it presents moderate recovery.
+
+
+## Lab 4
+
+### `torch.compile`
+
+This makes PyTorch models run faster by optimising the model and input data. It is a JiT compiler that optimises for specific hardware. It will essentially compile from Python to machine code at runtime, analysing slow parts of the code that it can recompile as needed.
+
+
+### Model Runtime
+
+The runtime of the optimised model is higher, when run for 5 iterations. However, when the iteration count is increased to 50, the optimised model is indeed faster. 
+
+This demonstrates that the compilation does indeed make the model run faster on average, but at 5 iterations the compilation overhead isn't outweighed by the model speedup.
+
+| Hardware | Iterations | Baseline Runtime (s) | Optimised Runtime (s) | Observation |
+| :--- | :--- | :--- | :--- | :--- |
+| **CPU** | 5 | 1.8944 | 11.4648 | Compilation overhead outweighs speedup. |
+| **CPU** | 50 | 1.5581 | 1.1766 | Compilation overhead is amortized over more runs. |
+| **GPU (RTX 4080)**| 5 | 0.0261 | 0.0205 | Improvements are immediate but smaller. |
+| **GPU (RTX 4080)**| 50 | 0.0251 | 0.0205 | Performance gains remain consistent |
+| **GPU (RTX 4080)**| 200 | 0.0250 | 0.0206 | No further scaling of benefits with more runs.|
+
+On a GPU, the runtime does improve, but by a much smaller amount, and the compilation benefits aren't scaled on increasing numbers of runs. This implies either that the baseline GPU performance was already highly efficient, leaving less room for JIT improvements.
+
+### Kernel Fusion
+
+This is advantageous as it reduces the number of memory accesses as well as the number of kernel launches, making numerous small operations cheaper by fusing them together. 
+
+For example, a linear layer followed immediately by a ReLU operation on the data, need not be executed by two separate kernels (with a corresponding read and write back to global memory for each), and instead have it's intermediate values in registers whilst the ReLU is operated, saving bandwidth to the global memory on GPU.
