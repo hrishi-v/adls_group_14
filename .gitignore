@@ -175,3 +175,4 @@ test-trainer/
 docs/tutorials/difflogic/data-mnist/
 
 !labs_media/*
+.venv_old
