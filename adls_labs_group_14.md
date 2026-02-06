@@ -35,7 +35,13 @@ With tools available to us in Mase, we can inject the LoRA adapter and perform a
 
 When the graph is drawn without the attention mask and label arguments, those values aren't passed into the model, and don't appear on the graph topology.
 
-LoRA allows us to achieve high accuracy whilst limiting memory usage, allowing control of parameters whilst fine-tuning memory hungry models like LLMs.
+LoRA allows us to achieve high accuracy whilst limiting memory usage, allowing control of parameters whilst fine-tuning memory hungry models like LLMs. Note that LoRA does not change inference time, as the low-rank matrices are merged back in, leaving the model with the same dimensions as before LoRA is applied.
+
+$$
+y = X (W + AB) + b
+$$
+
+All we do is change the lower rank matrices A and B, freezing the larger matrix W.
 
 # Lab 1
 
@@ -216,7 +222,7 @@ With quantized values, the physical hardware (integer multipliers) take up less 
 
 ### dont_need_abs and bias
 
-These are computed from the input value. They are used to determine if the MXINT8 value has a real leading one in it's mantissa - that's what (mantissa_abs && 0x40) is doing. If so, we know we can allow the hardware to insert it's leading 1 as it would do for typical floating point values. If not, we make sure to subtract the bias at the end, representing values smaller than 1 correctly.
+These are computed from the input value. They are used to determine if the MXINT8 value has a real leading one in it's mantissa - that's what (mantissa_abs && 0x40) is doing (is our value 1.0.. or 0.0...). If so, we know we can allow the hardware to insert it's leading 1 as it would do for typical floating point values. If not, we make sure to subtract the bias (correctly signed, shifted, 1.00000) at the end, representing values smaller than 1 correctly.
 
 ### cta_tiler and local_tile
 
