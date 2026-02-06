@@ -257,3 +257,16 @@ We define the thread layout so we can partition the global memory tensors data a
 This means that each thread can participate in the copy operation as they all own a different subtensor of the tile that is to be copied.
 
 ### Why is the saved GPU memory not what we expect?
+Only the torch.nn.Linear is quantized
+```python
+for layer_name, layer in model.named_modules():
+        if not isinstance(layer, torch.nn.Linear):
+            continue
+        if "classifier" in layer_name:
+            continue
+```
+Specifically, the following were not quantized:
+1. Encoder layers
+2. Output layers (poolers, classifier, dropout)
+
+Therefore a lot of the model is not quantized so it would not achieve the theoretical memory savings.
