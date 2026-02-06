@@ -1,168 +1,64 @@
-alias ts := test-sw
-alias th := test-hw
-alias re := reformat
+# https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_FLAGS.html#variable:CMAKE_%3CLANG%3E_FLAGS
+export CUDAFLAGS := "-DCUTLASS_ENABLE_TENSOR_CORE_MMA=1 --expt-relaxed-constexpr"
+export CUDA_ARCHITECTURES := "native"
+project_dir := justfile_directory()
+libtorch_url := "https://download.pytorch.org/libtorch/cu124/libtorch-cxx11-abi-shared-with-deps-2.5.1%2Bcu124.zip"
+TORCH_CUDA_ARCH_LIST := "7.5 8.0 8.6 9.0"
+NINJA_MAX_JOBS := num_cpus()
+CMAKE_MAX_JOBS := num_cpus()
+CU_BUILD_TARGETS := ""
+PYTEST_PATTERN := "test_.*"
 
-test-sw:
-	# cmd line interface is no longer supported
-	# bash scripts/test-machop.sh
-	pytest --log-level=DEBUG --verbose \
-		-n 1 \
-		--cov=src/chop/ --cov-report=html \
-		--html=report.html --self-contained-html \
-		--junitxml=test/report.xml \
-		--profile --profile-svg \
-		test/
+clean:
+    # python
+    if [ -d {{project_dir}}/dist ]; then rm -r {{project_dir}}/dist; fi
+    if [ -d {{project_dir}}/src/mase_cuda.egg-info ]; then rm -r {{project_dir}}/src/mase_cuda.egg-info; fi
+    # all
+    if [ -d {{project_dir}}/build ]; then rm -r {{project_dir}}/build; fi
 
-# This test will only focus on the typical hardware components
-test-hw:
-	# Activation_layers
-	python3 src/mase_components/activation_layers/test/fixed_relu_tb.py
-	# Cast
-	python3 src/mase_components/cast/test/fixed_cast_tb.py
-	# Linear layers
-	python3	src/mase_components/linear_layers/fixed_linear_layer/test/fixed_linear_tb.py
-	# MxInt
-	python3 src/mase_components/linear_layers/mxint_operators/test/mxint_linear_tb.py
-	# Memory
-	python3 src/mase_components/memory/test/fifo_tb.py
+# ==================== C++ ======================
+[private]
+cmake-build:
+    if [ -z {{CU_BUILD_TARGETS}} ]; \
+        then cmake --build {{project_dir}}/build -j {{CMAKE_MAX_JOBS}} ; \
+    else \
+        cmake --build {{project_dir}}/build --target {{CU_BUILD_TARGETS}} -j {{CMAKE_MAX_JOBS}} ; \
+    fi
 
-# This test will test all the available component
-test-hardware-slow:
-	# Activation_layers
-	# python3 scripts/build-components.py
-	python3 src/mase_components/activation_layers/test/fixed_gelu_tb.py
-	python3 src/mase_components/activation_layers/test/fixed_leaky_relu_tb.py
-	python3 src/mase_components/activation_layers/test/fixed_relu_tb.py
-	python3 src/mase_components/activation_layers/test/fixed_selu_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_sigmoid_tb.py
-	python3 src/mase_components/activation_layers/test/fixed_softermax_1d_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_softermax_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_softmax_tb.py
-	python3 src/mase_components/activation_layers/test/fixed_softplus_tb.py
-	python3 src/mase_components/activation_layers/test/fixed_softsign_tb.py
-	python3 src/mase_components/activation_layers/test/fixed_tanh_tb.py
-	# python3 src/mase_components/activation_layers/test/softermax_global_norm_tb.py
-	# python3 src/mase_components/activation_layers/test/softermax_local_window_tb.py
-	# python3 src/mase_components/activation_layers/test/softermax_lpw_pow2_tb.py
-	# python3 src/mase_components/activation_layers/test/softermax_lpw_reciprocal_tb.py
-	# python3 src/mase_components/activation_layers/test/test_lint_activation_layers.py
-	# python3 src/mase_components/activation_layers/test/test_synth_activation_layers.py
-	# DEV mode (no intention to fix)
-	# python3 src/mase_components/activation_layers/test/fixed_elu_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_hardshrink_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_hardswish_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_logsigmoid_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_silu_tb.py
-	# python3 src/mase_components/activation_layers/test/fixed_softshrink_tb.py
+build-cu-test: clean && cmake-build
+    echo $(which cmake)
+    cmake -D BUILD_TESTING=ON -D CUDA_ARCHITECTURES={{CUDA_ARCHITECTURES}} -B build -S .
 
-	# Cast
-	python3 src/mase_components/cast/test/fixed_cast_tb.py
-	python3 src/mase_components/cast/test/fixed_rounding_tb.py
-	python3 src/mase_components/cast/test/fixed_signed_cast_tb.py
-	# python3 src/mase_components/cast/test/fixed_unsigned_cast_tb.py
+build-cu-test-debug: clean && cmake-build
+    cmake -D BUILD_TESTING=ON -D CUDA_ARCHITECTURES={{CUDA_ARCHITECTURES}} -D NVCCGDB=ON -B build -S .
 
-	# Common
-	python3 src/mase_components/common/test/comparator_accumulator_tb.py
-	python3 src/mase_components/common/test/cut_data_tb.py
-	python3 src/mase_components/common/test/lut_tb.py
-	python3 src/mase_components/common/test/wrap_data_tb.py
-	# python3 src/mase_components/common/test/register_slice_tb.py
-	# python3 src/mase_components/common/test/test_lint_common.py
-	# DEV
-	# python3 src/mase_components/common/test/comparator_tree_tb.py
-	# python3 src/mase_components/common/test/single_element_repeat_tb.py
+build-cu-profile: clean && cmake-build
+    cmake -D BUILD_PROFILING=ON -D CUDA_ARCHITECTURES={{CUDA_ARCHITECTURES}} -B build -S .
 
-	# Convolution_layers
-	python3	src/mase_components/convolution_layers/test/convolution_tb.py
+# ==================== Python ====================
+build-py: clean
+    TORCH_CUDA_ARCH_LIST="{{TORCH_CUDA_ARCH_LIST}}" MAX_JOBS={{NINJA_MAX_JOBS}} tox -e build
 
-	# Inteface
-	python3 src/mase_components/interface/axi/test/test_lint_axi.py
-	# python3 src/mase_components/interface/axi/test/test_synth_axi.py
+test-py-fast:
+    TORCH_CUDA_ARCH_LIST="{{TORCH_CUDA_ARCH_LIST}}" MAX_JOBS={{NINJA_MAX_JOBS}} tox r -e py311 -- -v --log-cli-level INFO -m "not slow" --durations=0
 
-	# Language models llmint8
-	python3 src/mase_components/language_models/llmint8/test/find_max_tb.py
-	python3 src/mase_components/language_models/llmint8/test/fixed_comparator_tree_layer_tb.py
-	python3 src/mase_components/language_models/llmint8/test/fixed_comparator_tree_tb.py
-	python3 src/mase_components/language_models/llmint8/test/quantized_matmul_tb.py
-	python3 src/mase_components/language_models/llmint8/test/quantizer_top_tb.py
-	python3 src/mase_components/language_models/llmint8/test/scatter_tb.py
-	# DEV
-	# python3 src/mase_components/language_models/llmint8/test/llm_int8_top_tb.py
+test-py-slow:
+    TORCH_CUDA_ARCH_LIST="{{TORCH_CUDA_ARCH_LIST}}" MAX_JOBS={{NINJA_MAX_JOBS}} tox r -e py311 -- -v --log-cli-level INFO -m "slow" --durations=0
 
-	# Linear layers
-	python3	src/mase_components/linear_layers/fixed_linear_layer/test/fixed_linear_tb.py
-	# python3 src/mase_components/linear_layers/fixed_linear_layer/test/binary_activation_binary_linear_tb.py
-	# python3 src/mase_components/linear_layers/fixed_linear_layer/test/fixed_activation_binary_linear_tb.py
-	# Linear Layer - fixed_operators
-	python3 src/mase_components/linear_layers/fixed_operators/test/fixed_accumulator_tb.py
-	# python3 src/mase_components/linear_layers/fixed_operators/test/fixed_adder_tree_layer_tb.py
-	python3 src/mase_components/linear_layers/fixed_operators/test/fixed_adder_tree_tb.py
-	python3 src/mase_components/linear_layers/fixed_operators/test/fixed_dot_product_tb.py
-	python3 src/mase_components/linear_layers/fixed_operators/test/fixed_lut_index_tb.py
-	# python3 src/mase_components/linear_layers/fixed_operators/test/fixed_matmul_core_tb.py
-	python3 src/mase_components/linear_layers/fixed_operators/test/fixed_mult_tb.py
-	python3 src/mase_components/linear_layers/fixed_operators/test/fixed_range_augmentation_tb.py
-	# python3 src/mase_components/linear_layers/fixed_operators/test/fixed_range_reduction_tb.py
-	# Linear Layer - matmul
-	# python3 src/mase_components/linear_layers/matmul/test/chain_matmul_tb.py
-	# python3 src/mase_components/linear_layers/matmul/test/fixed_mamul_tb.py
-	# python3 src/mase_components/linear_layers/matmul/test/matmul_tb.py
-	# python3 src/mase_components/linear_layers/matmul/test/matrix_stream_transpose_tb.py
-	# python3 src/mase_components/linear_layers/matmul/test/transpose_tb.py
-	# DEV Linear Layer - binary_operators
-	python3 src/mase_components/linear_layers/binarized_operators/test/binary_activation_binary_adder_tree_layer_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/binary_activation_binary_adder_tree_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/binary_activation_binary_dot_product_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/binary_activation_binary_matmul_core_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/binary_activation_binary_mult_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/binary_activation_binary_vector_mult_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/fixed_activation_binary_dot_product_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/fixed_activation_binary_mult_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/fixed_activation_binary_vector_mult_tb.py
-	# python3 src/mase_components/linear_layers/binarized_operators/test/test_lint_binary_arith.py
-	# MxInt
-	python3 src/mase_components/linear_layers/mxint_operators/test/mxint_cast_tb.py
-	python3 src/mase_components/linear_layers/mxint_operators/test/mxint_matmul_tb.py
-	python3 src/mase_components/linear_layers/mxint_operators/test/mxint_linear_tb.py
-	python3 src/mase_components/linear_layers/mxint_operators/test/mxint_accumulator_tb.py
-	# Memory
-	python3 src/mase_components/memory/test/fifo_tb.py
-	# python3 src/mase_components/memory/test/input_buffer_tb.py
-	python3 src/mase_components/memory/test/skid_buffer_tb.py
-	# python3 src/mase_components/memory/test/unpacked_fifo_tb.py
-	# python3 src/mase_components/memory/test/repeat_circular_buffer_tb.py
-	# python3 src/mase_components/memory/test/test_lint_memory.py
+test-py:
+    TORCH_CUDA_ARCH_LIST="{{TORCH_CUDA_ARCH_LIST}}" MAX_JOBS={{NINJA_MAX_JOBS}} tox r -e py311 -- -v --log-cli-level INFO
 
-	# Normalization_layers
-	python3 src/mase_components/normalization_layers/test/batch_norm_2d_tb.py
-	python3 src/mase_components/normalization_layers/test/group_norm_2d_tb.py
-	# DEV
-	# python3 src/mase_components/normalization_layers/test/channel_selection_tb.py
-	# python3 src/mase_components/normalization_layers/test/rms_norm_2d_tb.py
-	# python3 src/mase_components/normalization_layers/test/test_lint_norm.py
+test-py-pattern:
+    echo "Function pattern: {{PYTEST_PATTERN}}"
+    TORCH_CUDA_ARCH_LIST="{{TORCH_CUDA_ARCH_LIST}}" MAX_JOBS={{NINJA_MAX_JOBS}} tox r -e py311 -- -v --log-cli-level INFO -k "{{PYTEST_PATTERN}}"
 
-	# Scalar operators
-	python3 src/mase_components/scalar_operators/fixed/test/fixed_isqrt_tb.py
-	python3 src/mase_components/scalar_operators/fixed/test/isqrt_sw.py
-	# python3 src/mase_components/scalar_operators/float/test/test_lint_float_arithmetic.py
-	# python3 src/mase_components/scalar_operators/fixed/test/fixed_nr_stage_tb.py
-	# python3 src/mase_components/scalar_operators/fixed/test/test_lint_fixed_math.py
+# build, test, and package
+tox:
+    TORCH_CUDA_ARCH_LIST="{{TORCH_CUDA_ARCH_LIST}}" MAX_JOBS={{NINJA_MAX_JOBS}} tox
 
-	# Systolic array
-	# python3 src/mase_components/systolic_arrays/test/test_lint_systolic_arrays.py
-
-	# Transformer_layers
-	python3 src/mase_components/transformer_layers/test/fixed_self_attention_head_tb.py
-	# python3 src/mase_components/transformer_layers/test/fixed_gqa_head_tb.py
-	# python3 src/mase_components/transformer_layers/test/fixed_self_attention_tb.py
-	# python3 src/mase_components/transformer_layers/test/test_lint_attention.py
-
-reformat:
-	# format python files
-	black *.py
-	black src/chop
-	black src/mase_components
-	black src/mase_cocotb
-	black test
-	# format verilog
-	# find src/mase_components -name '*.sv' -exec verible-verilog-format --inplace {} +;
+# ==================== Utils ====================
+download-libtorch-if-not-exists:
+    # download libtorch and extract to submodules if not exists
+    # the extracted libtorch can only be used by c++ language server
+    # the cmake system will use the libtorch installed in the python environment
+    if [ ! -d {{project_dir}}/submodules/libtorch ]; then curl -L {{libtorch_url}} -o {{project_dir}}/submodules/libtorch.zip; unzip {{project_dir}}/submodules/libtorch.zip -d {{project_dir}}/submodules; else echo "libtorch already exists"; fi
