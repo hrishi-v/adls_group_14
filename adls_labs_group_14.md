@@ -55,15 +55,17 @@ From the weights/biases present in the finetuned model, we observed that the ran
 
 ![Graph to show how the number of integer bits affect the accuracy.](labs_media/tut3_integer_bits.png)
 
-Graph to show how the number of integer bits affect the accuracy.
+Graph to show how the number of integer bits affect the accuracy. All these tests for integer precision were conducted with the fractional width left at 4. 
 
-Having determined the minimum number of bits required to preserve integer precision, we could allocate up to all 27 remaining bits for fractional precision. When search that space, we found our first peak of post-QAT accuracy at 5 fractional bits, with little improvement from beyond even 3 fractional bits of precision - meaning we could essentially use a Q5.3 if really pressed by memory constraints.
+Having determined the minimum number of bits required to preserve integer precision (5), we could allocate up to all 27 remaining bits for fractional precision. When search that space, we found our first peak of post-QAT accuracy at 5 fractional bits, with little improvement from beyond even 3 fractional bits of precision.
 
-![Graph to show how the number of integer bits affect the accuracy.](labs_media/tut3_fractional_bits.png)
+![Graph to show how the number of fractional bits affect the accuracy.](labs_media/tut3_fractional_bits.png)
 
 Graph to show how the number of fractional bits affect the accuracy.
 
 Overall though, from the graphs, we can see that QAT really improves our accuracy across the board, especially so with lower number of integer bits, so much so that it can really seem agnostic to the number of integer bits - from 2 up to 7 bits we see less than a percentile improvement.
+
+We can conclude that due to the significant accuracy improvements post-QAT, even 1 integer bit only loses us two percent accuracy, so using an 8-bit wide, Q3.5 format is probably a good mix of precision and speed/storage savings.
 
 ## Tutorial 4
 
