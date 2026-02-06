@@ -29,7 +29,7 @@ In the graph below, the trial accuracy achieved against the number of trials is 
 ## Task 2
 
 
-In this task, the test accuracy will be computed on the quantised and pruned model, so the objective of the study is to maximise the test accuracy of the compressed model, making the search compression-aware. Optuna `TPESampler()` yielded the best results on the entire search space in Task 1, so it will be used to run the compression-aware search. For the first experiment, the model will be trained for 1 epoch then compressed, so the objective is to maximise the test accuracy of the model found using Post-Training Quantisation and Pruning. For the second experiment, the model will be trained for 1 epoch, compressed, then trained for 1 more epoch to investigate whether fine-tuning the compressed model can recover the test accuracy to be similar to the best model found in Task 1 without compression.
+In this task, the test accuracy will be computed on the quantised and pruned model, so the objective of the study is to maximise the test accuracy of the compressed model, making the search compression-aware. Optuna `TPESampler()` yielded the best results in Task 1, so it will be used to run the compression-aware search. For the first experiment, the model will be trained for 1 epoch then compressed, so the objective is to maximise the test accuracy of the model found using Post-Training Quantisation and Pruning. For the second experiment, the model will be trained for 1 epoch, compressed, then trained for 1 more epoch to investigate whether fine-tuning the compressed model can recover the test accuracy to be similar to the best model found in Task 1 without compression.
 
 
 ![](best_accuracy_cas.png)
