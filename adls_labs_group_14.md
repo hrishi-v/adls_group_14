@@ -96,6 +96,13 @@ Finetuning shows a massive recovery for random pruning at lower sparsity levels 
 
 # Lab 2
 
+## Tutorial 5
+
+### Summary
+
+In this tutorial, we use different samplers to search for Bert model hyperparameters, which determines the sentiment of a movie review in the imdb dataset.
+
+
 ## Task 1
 
 
@@ -107,7 +114,7 @@ Optuna's `RandomSampler()` will randomly select each hyperparameter value from t
 
 Optuna's `TPESampler()` will use Guassian Mixure Models (GMMs), where one GMM `l(x)` is trained using the hyperparameters which has given test accuracies within the top 25% of all models evaluated, and another GMM `g(x)` is trained based on the hyperparameters which has given test accuracies within the bottom 75% of all models evaluated. This split is controlled by a parameter to TPESampler known as gamma, and helps balance exploration of new hyperparameters with exploitation of the existing best hyperparameters found. The TPESampler will pick the set of hyperparameters which will maximise `l(x)/g(x)`. While this method gradually converges to trialling better hyperparameters, there are instances where it may trial the same set of hyperparameters multiple times, since it may not explore the search space as aggressively as the number of trials increases, which may mean that the TPESampler becomes "stuck" at a local optimal set of hyperparameters in the search space. This may be mitigated through increasing the value of gamma.
 
-Optuna's `GridSampler()` will perform a grid search over the entire search space, so it may require a large amount of trials before finding hyperparameters that give a good test accuracy. In the search space, there are 153600 possible hyperparameter combinations, so for a limited number of trials, Optuna's `GridSampler()` is unlikely to be effective. In order to limit the search space, the number of linear layers in the Bert encoder is set to be the same as the number of linear layers in the best model architecture found by the `TPESampler()`, and the `num_layers`, `num_heads` and `hidden_size` is also limited to only include values which formed part of a hyperparameter combination which achieved an accuracy of above 0.8 with the `TPESampler()`. This means that the search space was limited to 60 hyperparameter combinations.
+Optuna's `GridSampler()` will perform a grid search over the entire search space, so it may require a large amount of trials before finding hyperparameters that give a good test accuracy. Unlike `TPESampler()` and `RandomSampler`, `GridSampler` requires a search space for grid search which means that it will only trial hyperparameter combinations within the search space. In the search space, there are 153600 possible hyperparameter combinations, so for a limited number of trials, Optuna's `GridSampler()` may not find the near-optimal set of hyperparameters quickly. In order to limit the search space, the number of linear layers in the Bert encoder can be set to be the same as the number of linear layers in the best model architecture found by the `TPESampler()`, and the `num_layers`, `num_heads` and `hidden_size` can also be limited to only include values which formed part of a hyperparameter combination which achieved an accuracy of above 0.8 with the `TPESampler()`. This means that the search space was limited to 60 hyperparameter combinations.
 
 In the graph below, the best accuracy achieved against the number of trials is plotted for Optuna's `RandomSampler()`, `TPESampler()`, the `GridSampler()` with the entire search space, and the `GridSampler()` with a limited search space determined by the `TPESampler()`. 
 
@@ -115,12 +122,14 @@ In the graph below, the best accuracy achieved against the number of trials is p
 ![Best Accuracy vs Number of Trials for different Optuna Samplers](best_accuracy.png)
 
 
+Both the `GridSampler()` and the `TPESampler()` produce a similar test accuracy, however the `TPESampler()` requires more trials to reach its best accuracy since it will not select hyperparameter values from a predefined search space, meaning that it must explore different hyperparameter values initially before only trialling hyperparameter values that have previously produced high test accuracies. The `RandomSampler()` is noticably worse than the other 2 samplers, since it will randomly select hyperparameter values, so even in the later trials (e.g. trial 14), the `RandomSampler()` will construct models that produce a very low test accuracy.
 
 In the graph below, the trial accuracy achieved against the number of trials is plotted for Optuna's `RandomSampler()`, `TPESampler()`, the `GridSampler()` with the entire search space, and the `GridSampler()` with a limited search space determined by the `TPESampler()`. 
 
 
 ![Trial Accuracy vs Number of Trials for different Optuna Samplers](trial_accuracy.png)
 
+In the initial trials, the `GridSampler()` constructs the model with the best test accuracy since it will only trial hyperparameter values from its predfined search space, however after the `TPESampler()` has explored different hyperparameter combinations in its initial trials it will begin to trial hyperparameter combinations that provide a higher test accuracy.
 
 ## Task 2
 
