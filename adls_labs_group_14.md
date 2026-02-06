@@ -86,6 +86,29 @@ L1-norm pruning has a higher accuracy for all sparsity levels. Performance drops
 
 Finetuning shows a massive recovery for random pruning at lower sparsity levels (0.1-0.5) but L1-norm requires less finetuning help until very high levels of sparsity levels, at which point it presents moderate recovery.
 
+# Lab 3
+
+## Tutorial 6
+
+### Task 1: Per-Layer Bit Width Search
+
+In the original template code, all `LinearInteger` layers use the same hardcoded configuration (width=8, frac_width=4). We modified the search to let Optuna choose width [8, 16, 32] and fractional width [2, 4, 8] independently for each layer. This configuration is as requested by the question. A graph of the improving model accuracy is shown below. On each Optuna trial, if the accuracy of the configuration is higher, the best configuratin of the best model so far is updated. At the end only the best model is retained.
+
+![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task1_search_progress.png)
+
+### Task 2: Multi-Precision Type Search
+
+As requested in the question, the cnofiguration search is then extended to include multiple precision types: `Integer`, `MinifloatDenorm`, `MinifloatIEEE`, and `Log` etc. The below graph shows the performance of these different precision types.
+
+![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_search_progress.png)
+
+`MinifloatDenorm` achieves the best accuracy (86.02%), with `MinifloatIEEE` close behind (85.99%). To consider the case where a model could use a mix of all of these strategies, Optuna was configured to search a mix of these precision types. To give this run a higher chance of reaching an optimal model, 50 trials were used for this larger search space. Shown below is the graph of the improving accuracies against the trial index. 
+
+![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_mixed_search_progress.png)
+
+Lets visualise the distribution of these different layer types in the final chosen best model:
+
+![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_mixed_layer_dist.png)
 
 # Lab 4
 
