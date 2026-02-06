@@ -238,7 +238,7 @@ With quantized values, the physical hardware (integer multipliers) take up less 
 
 ### dont_need_abs and bias
 
-These are computed from the input value. They are used to determine if the MXINT8 value has a real leading one in it's mantissa - that's what (mantissa_abs && 0x40) is doing (is our value 1.0.. or 0.0...). If so, we know we can allow the hardware to insert it's leading 1 as it would do for typical floating point values. If not, we make sure to subtract the bias (correctly signed, shifted, 1.00000) at the end, representing values smaller than 1 correctly.
+These are computed from the input value. They are used to determine if the MXINT8 value has a real leading one in its mantissa - that's what (mantissa_abs && 0x40) is doing (is our value 1.0.. or 0.0...). If so, we know we can allow the hardware to insert it's leading 1 as it would do for typical floating point values. If not, we make sure to subtract the bias (correctly signed, shifted, 1.00000) at the end, representing values smaller than 1 correctly.
 
 ### cta_tiler and local_tile
 
