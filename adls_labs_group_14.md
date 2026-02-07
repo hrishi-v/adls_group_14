@@ -205,7 +205,7 @@ The below graph shows the performance of these different precision types.
 
 ![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_search_progress.png)
 
-`LineaerMinifloatDenorm` achieves the best accuracy (86.02%), with `LinearMinifloatIEEE` close behind (85.99%). Our experiments also considers the case where a model could use a mix of all of these strategies, Optuna was configured to search a mix of these precision types. To give this run a higher chance of reaching an optimal model, 50 trials were used for this larger search space. Shown below is the graph of the improving accuracies against the trial index. 
+`LinearMinifloatDenorm` achieves the best accuracy (86.02%), with `LinearMinifloatIEEE` close behind (85.99%). Our experiments also considers the case where a model could use a mix of all of these strategies, Optuna was configured to search a mix of these precision types. To give this run a higher chance of reaching an optimal model, 50 trials were used for this larger search space. Shown below is the graph of the improving accuracies against the trial index. 
 
 ![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_mixed_search_progress.png)
 
