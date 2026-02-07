@@ -149,7 +149,7 @@ In this tutorial, we use different samplers to search for Bert model hyperparame
 
 In order to evaluate each sampling method, we first run each sampler on the entire search space provided in the tutorials. 
 
-Optuna's `RandomSampler()` will randomly select each hyperparameter value from the search space, and we found that this produced a best test accuracy of 0.8321 after 30 trials. However, as shown in the graph, the sampler struggles to find hyperparameter combinations that improves the best accuracy as the number of trials increases. As the number of trials increases, the trial accuracies also do not become more consistent. For example, in trial 13, the accuracy of the model constructed was only 0.5, while the best accuracy up to this point was over 0.8, meaning that a large number of trials may be required to obtain a model architecture with a near-optimal test accuracy.
+Optuna's RandomSampler() randomly selects hyperparameter values from the search space. We found that this produced a best test accuracy of 0.8321 after 30 trials. However, as shown in the graph, the sampler struggles to consistently improve the best accuracy as the number of trials increases. Individual trial accuracies also remain highly variable. For example, in trial 13, the constructed model achieved an accuracy of only 0.5, despite the best accuracy up to that point being over 0.8. This indicates that random search may require a large number of trials to reliably discover near-optimal architectures.
 
 Optuna's `TPESampler()` will use Gaussian Mixure Models (GMMs), where one GMM `l(x)` is trained using the hyperparameters which has given test accuracies within the top 25% of all models evaluated, and another GMM `g(x)` is trained based on the hyperparameters which has given test accuracies within the bottom 75% of all models evaluated. This split is controlled by a parameter to TPESampler known as gamma, and helps balance exploration of new hyperparameters with exploitation of the existing best hyperparameters found. The TPESampler will pick the set of hyperparameters which will maximise `l(x)/g(x)`. While this method gradually converges to trialling better hyperparameters, there are instances where it may trial the same set of hyperparameters multiple times, since it may not explore the search space as aggressively as the number of trials increases, which may mean that the TPESampler becomes "stuck" at a local optimal set of hyperparameters in the search space. This may be mitigated through increasing the value of gamma.
 
@@ -168,7 +168,7 @@ In the graph below, the trial accuracy achieved against the number of trials is 
 
 ![Trial Accuracy vs Number of Trials for different Optuna Samplers](labs_media/trial_accuracy.png)
 
-In the initial trials, the `GridSampler()` constructs the model with the best test accuracy since it will only trial hyperparameter values from its predefined search space, however after the `TPESampler()` has explored different hyperparameter combinations in its initial trials it will begin to trial hyperparameter combinations that provide a higher test accuracy.
+Overall, the TPESampler produces a good test accuracy and the best balance between exploration and exploitation under a limited trial budget, and is therefore selected for use in the compression-aware search in Task 2.
 
 ## Task 2
 
