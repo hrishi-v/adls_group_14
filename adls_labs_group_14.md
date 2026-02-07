@@ -106,9 +106,9 @@ Having determined the minimum number of bits required to preserve integer precis
 
 Graph to show how the number of fractional bits affect the accuracy.
 
-Overall though, from the graphs, we can see that QAT really improves our accuracy across the board, especially so with lower number of integer bits, so much so that it can really seem agnostic to the number of integer bits - from 2 up to 7 bits we see less than a percentile improvement.
+Overall, from the graphs, we can see that QAT really improves our accuracy across the board, especially so with a lower number of integer bits, so much so that it can really seem agnostic to the number of integer bits - from 2 up to 7 bits we see less than a percentile improvement.
 
-We can conclude that due to the significant accuracy improvements post-QAT, even 1 integer bit only loses us two percent accuracy, so using an 8-bit wide, Q3.5 format is probably a good mix of precision and speed/storage savings.
+We can conclude that due to the significant accuracy improvements post-QAT, even 1 integer bit only loses us two percent accuracy, so using an 8-bit wide, Q3.5 format is a good mix of precision and speed/storage savings.
 
 ## Tutorial 4
 
