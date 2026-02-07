@@ -84,7 +84,7 @@ All we do is change the lower rank matrices A and B, freezing the larger matrix 
 
 ### Key Definitions and Summary
 
-We take a finetuned model and run the PTO (Post-Training Quantization) pass from Mase on it. This will reduce accuracy, whilst also reducing the precision of weights and biases, such that the model size reduces.
+We take a finetuned model and run the PTQ (Post-Training Quantization) pass from Mase on it. This will reduce accuracy, whilst also reducing the precision of weights and biases, such that the model size reduces.
 
 **Finetuned Model Accuracy:** 83.44%
 **Post-PTQ Accuracy:** 81.58%
