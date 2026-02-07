@@ -156,7 +156,7 @@ Optuna's `GridSampler()` will perform a grid search over the entire search space
 In the graph below, the best accuracy achieved against the number of trials is plotted for Optuna's `RandomSampler()`, `TPESampler()`, the `GridSampler()` with the entire search space, and the `GridSampler()` with a limited search space determined by the `TPESampler()`. 
 
 
-![Best Accuracy vs Number of Trials for different Optuna Samplers](best_accuracy.png)
+![Best Accuracy vs Number of Trials for different Optuna Samplers](labs_media/best_accuracy.png)
 
 
 Both the `GridSampler()` and the `TPESampler()` produce a similar test accuracy, however the `TPESampler()` requires more trials to reach its best accuracy since it will not select hyperparameter values from a predefined search space, meaning that it must explore different hyperparameter values initially before only trialling hyperparameter values that have previously produced high test accuracies. The `RandomSampler()` is noticably worse than the other 2 samplers, since it will randomly select hyperparameter values, so even in the later trials (e.g. trial 14), the `RandomSampler()` will construct models that produce a very low test accuracy.
@@ -164,7 +164,7 @@ Both the `GridSampler()` and the `TPESampler()` produce a similar test accuracy,
 In the graph below, the trial accuracy achieved against the number of trials is plotted for Optuna's `RandomSampler()`, `TPESampler()`, the `GridSampler()` with the entire search space, and the `GridSampler()` with a limited search space determined by the `TPESampler()`. 
 
 
-![Trial Accuracy vs Number of Trials for different Optuna Samplers](trial_accuracy.png)
+![Trial Accuracy vs Number of Trials for different Optuna Samplers](labs_media/trial_accuracy.png)
 
 In the initial trials, the `GridSampler()` constructs the model with the best test accuracy since it will only trial hyperparameter values from its predfined search space, however after the `TPESampler()` has explored different hyperparameter combinations in its initial trials it will begin to trial hyperparameter combinations that provide a higher test accuracy.
 
@@ -174,7 +174,7 @@ In the initial trials, the `GridSampler()` constructs the model with the best te
 In this task, the test accuracy will be computed on the quantised and pruned model, so the objective of the study is to maximise the test accuracy of the compressed model, making the search compression-aware. Optuna `TPESampler()` yielded the best results in Task 1, so it will be used to run the compression-aware search. For the first experiment, the model will be trained for 1 epoch then compressed, so the objective is to maximise the test accuracy of the model found using Post-Training Quantisation and Pruning. For the second experiment, the model will be trained for 1 epoch, compressed, then trained for 1 more epoch to investigate whether fine-tuning the compressed model can recover the test accuracy to be similar to the best model found in Task 1 without compression.
 
 
-![](best_accuracy_cas.png)
+![](labs_media/best_accuracy_cas.png)
 
 
 # Lab 3
