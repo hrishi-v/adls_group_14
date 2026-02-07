@@ -8,7 +8,9 @@ The main flow of this tutorial is from pretrained model (Bert specifically) to F
 
 FX Graph - A compute graph which offers a high-level representation of the computation. It is also PyTorch native, meaning that each operator in the graph correlates to a Python object or callable. We can transform and optimize the graph, and regenerate the Python to run it!
 
-Mase IR - The key benefit of Mase IR is that it offers a common abstraction layer for both hardware and software workloads. It also incorporates information regarding the workload that is to be run by the graph.
+Mase IR - The key benefit of Mase IR is that it offers a common abstraction layer for both hardware and software workloads. It also incorporates information regarding the workload that is to be run by the graph. 
+
+Mase IR allows a focus on hardware-specific metadata like quantization formats and hardware backend targets, whilst still keeping Python-native transformation.
 
 ### What we do
 
@@ -41,7 +43,7 @@ $$
 y = X (W + AB) + b
 $$
 
-All we do is change the lower rank matrices A and B, freezing the larger matrix W.
+All we do is change the lower rank matrices A and B, freezing the larger matrix W. B is initialised to 0, as we can start training exactly at the pretrained state, if both matrices were random, the initial output will be random noise added to the pretrained weights.
 
 # Lab 1
 
@@ -57,13 +59,13 @@ We take a finetuned model and run the PTO (Post-Training Quantization) pass from
 
 We then try to restore the accuracy from before quantization using QAT (Quantization-Aware Training). This includes the model back into the training loop after the quantization pass, such that the model can optimize the new, lower-resolution weights for the dataset. As we can see from the results, this step results in a better accuracy than even before PTQ, with a lower memory requirement.
 
-From the weights/biases present in the finetuned model, we observed that the range of values primarily lied between -1 and 1, allowing us to utilise very few bits allocated for the integer. This limited our search space to between 1 and 10 integer bits, where we found using more than 5 integer bits didn't provide a greater post-PTQ accuracy.
+From the weights/biases present in the finetuned model, we observed that the range of values primarily lied between -1 and 1, allowing us to utilise very few bits allocated for the integer. This limited our search space to between 1 and 10 integer bits, where we found using more than 5 integer bits didn't provide a greater post-PTQ accuracy. With too little integer precision, the integer bits will be saturated, and unable to represent the true integer values.
 
 ![Graph to show how the number of integer bits affect the accuracy.](labs_media/tut3_integer_bits.png)
 
 Graph to show how the number of integer bits affect the accuracy. All these tests for integer precision were conducted with the fractional width left at 4. 
 
-Having determined the minimum number of bits required to preserve integer precision (5), we could allocate up to all 27 remaining bits for fractional precision. When search that space, we found our first peak of post-QAT accuracy at 5 fractional bits, with little improvement from beyond even 3 fractional bits of precision.
+Having determined the minimum number of bits required to preserve integer precision (5), we could allocate up to all 27 remaining bits for fractional precision. When search that space, we found our first peak of post-QAT accuracy at 5 fractional bits, with little improvement from beyond even 3 fractional bits of precision. Below 3 fractional bits, we suffer underflow and precision loss, resulting in much worse accuracy.
 
 ![Graph to show how the number of fractional bits affect the accuracy.](labs_media/tut3_fractional_bits.png)
 
@@ -94,13 +96,15 @@ L1-norm pruning has a higher accuracy for all sparsity levels. Performance drops
 
 Finetuning shows a massive recovery for random pruning at lower sparsity levels (0.1-0.5) but L1-norm requires less finetuning help until very high levels of sparsity levels, at which point it presents moderate recovery.
 
+Unstructured pruning will not provide a speedup on standard hardware. This is because the GPU will still perform multiply-accumlate operations on the zeroes. To see a speedup, we should use structured pruning (removing whole rows and columns).
+
 # Lab 2
 
 ## Tutorial 5
 
 ### Summary
 
-In this tutorial, we use different samplers to search for Bert model hyperparameters, which determines the sentiment of a movie review in the imdb dataset.
+In this tutorial, we use different samplers to search for Bert model hyperparameters, which determines the sentiment of a movie review in the IMDB dataset.
 
 
 ## Task 1
@@ -112,7 +116,7 @@ In order to evaluate each sampling method, we first run each sampler on the enti
 
 Optuna's `RandomSampler()` will randomly select each hyperparameter value from the search space, and we found that this produced a best test accuracy of 0.8321 after 30 trials. However, as shown in the graph, the sampler struggles to find hyperparameter combinations that improves the best accuracy as the number of trials increases. As the number of trials increases, the trial accuracies also do not become more consistent. For example, in trial 13, the accuracy of the model constructed was only 0.5, while the best accuracy up to this point was over 0.8, meaning that a large number of trials may be required to obtain a model architecture with a near-optimal test accuracy.
 
-Optuna's `TPESampler()` will use Guassian Mixure Models (GMMs), where one GMM `l(x)` is trained using the hyperparameters which has given test accuracies within the top 25% of all models evaluated, and another GMM `g(x)` is trained based on the hyperparameters which has given test accuracies within the bottom 75% of all models evaluated. This split is controlled by a parameter to TPESampler known as gamma, and helps balance exploration of new hyperparameters with exploitation of the existing best hyperparameters found. The TPESampler will pick the set of hyperparameters which will maximise `l(x)/g(x)`. While this method gradually converges to trialling better hyperparameters, there are instances where it may trial the same set of hyperparameters multiple times, since it may not explore the search space as aggressively as the number of trials increases, which may mean that the TPESampler becomes "stuck" at a local optimal set of hyperparameters in the search space. This may be mitigated through increasing the value of gamma.
+Optuna's `TPESampler()` will use Gaussian Mixure Models (GMMs), where one GMM `l(x)` is trained using the hyperparameters which has given test accuracies within the top 25% of all models evaluated, and another GMM `g(x)` is trained based on the hyperparameters which has given test accuracies within the bottom 75% of all models evaluated. This split is controlled by a parameter to TPESampler known as gamma, and helps balance exploration of new hyperparameters with exploitation of the existing best hyperparameters found. The TPESampler will pick the set of hyperparameters which will maximise `l(x)/g(x)`. While this method gradually converges to trialling better hyperparameters, there are instances where it may trial the same set of hyperparameters multiple times, since it may not explore the search space as aggressively as the number of trials increases, which may mean that the TPESampler becomes "stuck" at a local optimal set of hyperparameters in the search space. This may be mitigated through increasing the value of gamma.
 
 Optuna's `GridSampler()` will perform a grid search over the entire search space, so it may require a large amount of trials before finding hyperparameters that give a good test accuracy. Unlike `TPESampler()` and `RandomSampler`, `GridSampler` requires a search space for grid search which means that it will only trial hyperparameter combinations within the search space. In the search space, there are 153600 possible hyperparameter combinations, so for a limited number of trials, Optuna's `GridSampler()` may not find the near-optimal set of hyperparameters quickly. In order to limit the search space, the number of linear layers in the Bert encoder can be set to be the same as the number of linear layers in the best model architecture found by the `TPESampler()`, and the `num_layers`, `num_heads` and `hidden_size` can also be limited to only include values which formed part of a hyperparameter combination which achieved an accuracy of above 0.8 with the `TPESampler()`. This means that the search space was limited to 60 hyperparameter combinations.
 
@@ -247,7 +251,7 @@ With quantized values, the physical hardware (integer multipliers) take up less 
 
 ### dont_need_abs and bias
 
-These are computed from the input value. They are used to determine if the MXINT8 value has a real leading one in its mantissa - that's what (mantissa_abs && 0x40) is doing (is our value 1.0.. or 0.0...). If so, we know we can allow the hardware to insert it's leading 1 as it would do for typical floating point values. If not, we make sure to subtract the bias (correctly signed, shifted, 1.00000) at the end, representing values smaller than 1 correctly.
+These are computed from the input value. They are used to determine if the MXINT8 value has a real leading one in its mantissa (7th bit) - that's what (mantissa_abs && 0x40) is doing (is our value 1.0.. or 0.0...?). If so, we know we can allow the hardware to insert it's leading 1 as it would do for typical floating point values. If not, we make sure to subtract the bias (correctly signed, shifted, 1.00000) at the end, representing values smaller than 1 correctly.
 
 ### cta_tiler and local_tile
 
@@ -278,4 +282,4 @@ Specifically, the following were not quantized:
 1. Encoder layers
 2. Output layers (poolers, classifier, dropout)
 
-Therefore a lot of the model is not quantized so it would not achieve the theoretical memory savings.
+Therefore a lot of the model is not quantized so it would not achieve the theoretical memory savings that we might expect.
