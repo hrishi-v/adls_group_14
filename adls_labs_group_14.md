@@ -275,7 +275,7 @@ These are the most powerful way to optimise code performance, but require a bit 
 
 Our custom kernel is for dequantization, making the quantized values back into floating-point values. 
 
-### MXINT8 Quantization*
+### MXINT8 Quantization
 
 
 The CPU algorithm to convert from MXINT8 to BFloat16 is explained below.
