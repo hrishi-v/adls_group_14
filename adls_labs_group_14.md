@@ -286,7 +286,7 @@ The CPU algorithm to convert from MXINT8 to BFloat16 is explained below.
         auto exp = static_cast<uint16_t>(hScales[i / group_size]) << 7; // Take the shared exponent, shift by 7 since you want to align 1 bit before sign bit
         auto mantissa_abs = abs(hX[i]); // Taking an unsigned 8-bit representation
         auto frac = static_cast<uint16_t>((mantissa_abs & 0x3F) << 1); // Since BFloat16 has an implicit leading bit, we take 6 bits (S | i | 6-bit fraction) (not the signed bit or the MS positive bit), then shift left by 1, since MXINT8 has a 6-bit fraction while BFloat16 has a 7-bit fraction
-        auto out = cutlass::bfloat16_t::bitcast(sign | exp | frac); // Or all the bits
+        auto out = cutlass::bfloat16_t::bitcast(sign | exp | frac); // Bitwise Or on all the bits
         auto dont_need_abs = bool(mantissa_abs & 0x40); // Check the value of the integer bit that is implicitly 1 in BFloat16
         auto bias = cutlass::bfloat16_t::bitcast(sign | exp | uint16_t(0)); 
         y[i] = dont_need_abs ? out : out - bias; // Subtract the bias if the bit that is implicit is zero, since it will be 1 in BFloat16 (bias represents ±1.0 × 2^exp)
