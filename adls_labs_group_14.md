@@ -58,7 +58,7 @@ We take the tokenized IMDb dataset, and the model is loaded as a MaseGraph. We c
 With tools available to us in Mase, we can inject the LoRA adapter and perform a pass of the graph. We generate a custom MaseGraph using arguments.
 
 
-**Task:** Remove the `attention_mask` and `labels` arguments from the `hf_input_names` list and re-run the following cell. Use `mg.draw()` to visualize the grah in each case. Can you see any changes in the graph topology? Can you explain why this happens?
+**Task:** Remove the `attention_mask` and `labels` arguments from the `hf_input_names` list and re-run the following cell. Use `mg.draw()` to visualize the graph in each case. Can you see any changes in the graph topology? Can you explain why this happens?
 
 When the graph is drawn without the attention mask and label arguments, those values aren't passed into the model, and don't appear on the graph topology.
 
