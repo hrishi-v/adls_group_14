@@ -86,13 +86,13 @@ All we do is change the lower rank matrices A and B, freezing the larger matrix 
 
 ### Key Definitions and Summary
 
-We take a finetuned model and run the PTQ (Post-Training Quantization) pass from Mase on it. This will reduce accuracy, whilst also reducing the precision of weights and biases, such that the model size reduces.
+We take a finetuned model and run the PTQ (Post-Training Quantization) pass from Mase on it. This will reduce accuracy, whilst also reducing the precision of weights and biases, such that the model size reduces. When representing the model inputs, weights and biases using a 5 bit integer width and 5 bit fractional width representation as in the tutorial, we measure the following accuracies:
 
 **Finetuned Model Accuracy:** 83.44%
 **Post-PTQ Accuracy:** 81.58%
 **Post-QAT Accuracy:** 84.04%
 
-We then try to restore the accuracy from before quantization using QAT (Quantization-Aware Training). This includes the model back into the training loop after the quantization pass, such that the model can optimize the new, lower-resolution weights for the dataset. As we can see from the results, this step results in a better accuracy than even before PTQ, with a lower memory requirement.
+We try to restore the accuracy from before quantization using QAT (Quantization-Aware Training). This includes the model back into the training loop after the quantization pass, such that the model can optimize the new, lower-resolution weights for the dataset. As we can see from the results, this step results in a better accuracy than even before PTQ, with a lower memory requirement.
 
 From the weights/biases present in the finetuned model, we observed that the range of values primarily lied between -1 and 1, allowing us to utilise very few bits allocated for the integer. This limited our search space to between 1 and 10 integer bits, where we found using more than 5 integer bits didn't provide a greater post-PTQ accuracy. With too little integer precision, the integer bits will be saturated, and unable to represent the true integer values.
 
