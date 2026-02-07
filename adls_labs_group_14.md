@@ -62,13 +62,15 @@ With tools available to us in Mase, we can inject the LoRA adapter and perform a
 
 When the graph is drawn without the attention mask and label arguments, those values aren't passed into the model, and don't appear on the graph topology.
 
-This is the graph when we drive attention_mask and labels
-[Tutorial2_1](labs_media/tutorial_2_with_attention_mask.svg)
+The graph below is drawn with the attention mask and label arguments
 
-This is the graph when we don't
-[Tutorial2_2](labs_media/tutorial_2_without_attention_mask.svg)
+![Tutorial2_1](labs_media/tutorial_2_with_attention_mask.svg)
 
-The main changes are the attention mask that gets added instead of simply a tensor of ones (attention mask helps when we need to pad sequences to keep them equal length, so the mask will extract the useful tokens), and the cross entropy loss module that is called at the end due to labels [ref](https://huggingface.co/docs/transformers/en/glossary).
+The graph below is drawn without the attention mask and label arguments
+
+![Tutorial2_2](labs_media/tutorial_2_without_attention_mask.svg)
+
+The main changes are the attention mask that gets added instead of simply a tensor of ones (attention mask helps when we need to pad sequences to keep them equal length, so the mask will extract the useful tokens), and the cross entropy loss module that is called at the end due to labels ([ref](https://huggingface.co/docs/transformers/en/glossary)).
 
 LoRA allows us to achieve high accuracy whilst limiting memory usage, allowing control of parameters whilst fine-tuning memory hungry models like LLMs. Note that LoRA does not change inference time, as the low-rank matrices are merged back in, leaving the model with the same dimensions as before LoRA is applied.
 
