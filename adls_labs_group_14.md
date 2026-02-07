@@ -64,11 +64,11 @@ When the graph is drawn without the attention mask and label arguments, those va
 
 The graph below is drawn with the attention mask and label arguments
 
-![Tutorial2_1](labs_media/tutorial_2_with_attention_mask.svg)
+<img src="labs_media/tutorial_2_with_attention_mask.svg" width="400">
 
 The graph below is drawn without the attention mask and label arguments
 
-![Tutorial2_2](labs_media/tutorial_2_without_attention_mask.svg)
+<img src="labs_media/tutorial_2_without_attention_mask.svg" width="400">
 
 The main changes are the attention mask that gets added instead of simply a tensor of ones (attention mask helps when we need to pad sequences to keep them equal length, so the mask will extract the useful tokens), and the cross entropy loss module that is called at the end due to labels ([ref](https://huggingface.co/docs/transformers/en/glossary)).
 
