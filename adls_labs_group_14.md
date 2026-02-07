@@ -16,6 +16,9 @@ Mase IR allows a focus on hardware-specific metadata like quantization formats a
 
 What we essentially do is to take a model, generate a MaseGraph of it, such that we can execute passes. These passes are able to analyse or transform nodes in the graph.
 
+- **Analysis passes**: extract some information about each node, annotate nodes with relevant data, and generate payloads to be used by subsequent passes.
+- **Transform passes**: change the topology of the graph by inserting, removing or replacing nodes.
+
 Writing an analysis pass can be done using the `get_logger` API from Machop; in this tutorial we specifically use to count the number of dropout layer (6 of them). This is important as they only have meaning in the training stage, and can be removed for inference.
 
 Once those have been picked out, the graph is again exported to have further optimisations done on it.
@@ -65,7 +68,7 @@ From the weights/biases present in the finetuned model, we observed that the ran
 
 Graph to show how the number of integer bits affect the accuracy. All these tests for integer precision were conducted with the fractional width left at 4. 
 
-Having determined the minimum number of bits required to preserve integer precision (5), we could allocate up to all 27 remaining bits for fractional precision. When search that space, we found our first peak of post-QAT accuracy at 5 fractional bits, with little improvement from beyond even 3 fractional bits of precision. Below 3 fractional bits, we suffer underflow and precision loss, resulting in much worse accuracy.
+Having determined the minimum number of bits required to preserve integer precision (5), we could allocate up to all 27 remaining bits for fractional precision. When we search that space, we found our first peak of post-QAT accuracy at 5 fractional bits, with little improvement from beyond even 3 fractional bits of precision. Below 3 fractional bits, we suffer underflow and precision loss, resulting in much worse accuracy.
 
 ![Graph to show how the number of fractional bits affect the accuracy.](labs_media/tut3_fractional_bits.png)
 
@@ -150,13 +153,13 @@ In this task, the test accuracy will be computed on the quantised and pruned mod
 
 ### Task 1: Per-Layer Bit Width Search
 
-In the original template code, all `LinearInteger` layers use the same hardcoded configuration (width=8, frac_width=4). We modified the search to let Optuna choose width [8, 16, 32] and fractional width [2, 4, 8] independently for each layer. This configuration is as requested by the question. A graph of the improving model accuracy is shown below. On each Optuna trial, if the accuracy of the configuration is higher, the best configuratin of the best model so far is updated. At the end only the best model is retained.
+In the original template code, all `LinearInteger` layers use the same hardcoded configuration (width=8, frac_width=4). We modified the search to let Optuna's TPESampler choose the width [8, 16, 32] and fractional width [2, 4, 8] independently for each layer. This configuration is as requested by the question. A graph of the improving model accuracy is shown below. On each Optuna trial, if the accuracy of the configuration is higher, the best configuration of the best model so far is updated. At the end only the best model is retained.
 
 ![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task1_search_progress.png)
 
 ### Task 2: Multi-Precision Type Search
 
-As requested in the question, the cnofiguration search is then extended to include multiple precision types: `Integer`, `MinifloatDenorm`, `MinifloatIEEE`, and `Log` etc. The below graph shows the performance of these different precision types.
+As requested in the question, the configuration search is then extended to include multiple precision types: `Integer`, `MinifloatDenorm`, `MinifloatIEEE`, and `Log` etc. The below graph shows the performance of these different precision types.
 
 ![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_search_progress.png)
 
@@ -235,11 +238,11 @@ The CPU algorithm to convert from MXINT8 to BFloat16 is explained below.
 ```cpp
     for (int i = 0; i < M; ++i) {
         auto sign = static_cast<uint16_t>(hX[i] & 0x80) << 8; // The signed bit is the MSB of the 16-bit BFloat16 representation
-        auto exp = static_cast<uint16_t>(hScales[i / group_size]) << 7; // Take the shared exponent, shift by 7 since you want to align 1 bit past sign bit
+        auto exp = static_cast<uint16_t>(hScales[i / group_size]) << 7; // Take the shared exponent, shift by 7 since you want to align 1 bit before sign bit
         auto mantissa_abs = abs(hX[i]); // Taking an unsigned 8-bit representation
         auto frac = static_cast<uint16_t>((mantissa_abs & 0x3F) << 1); // Since BFloat16 has an implicit leading bit, we take 6 bits (S | i | 6-bit fraction) (not the signed bit or the MS positive bit), then shift left by 1, since MXINT8 has a 6-bit fraction while BFloat16 has a 7-bit fraction
         auto out = cutlass::bfloat16_t::bitcast(sign | exp | frac); // Or all the bits
-        auto dont_need_abs = bool(mantissa_abs & 0x40); // Check the value of the bit that is implcitely 1 in BFloat16
+        auto dont_need_abs = bool(mantissa_abs & 0x40); // Check the value of the integer bit that is implicitly 1 in BFloat16
         auto bias = cutlass::bfloat16_t::bitcast(sign | exp | uint16_t(0)); 
         y[i] = dont_need_abs ? out : out - bias; // Subtract the bias if the bit that is implicit is zero, since it will be 1 in BFloat16 (bias represents ±1.0 × 2^exp)
     }
