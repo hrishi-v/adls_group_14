@@ -168,7 +168,7 @@ In the graph below, the trial accuracy achieved against the number of trials is 
 
 ![Trial Accuracy vs Number of Trials for different Optuna Samplers](labs_media/trial_accuracy.png)
 
-In the initial trials, the `GridSampler()` constructs the model with the best test accuracy since it will only trial hyperparameter values from its predfined search space, however after the `TPESampler()` has explored different hyperparameter combinations in its initial trials it will begin to trial hyperparameter combinations that provide a higher test accuracy.
+In the initial trials, the `GridSampler()` constructs the model with the best test accuracy since it will only trial hyperparameter values from its predefined search space, however after the `TPESampler()` has explored different hyperparameter combinations in its initial trials it will begin to trial hyperparameter combinations that provide a higher test accuracy.
 
 ## Task 2
 
