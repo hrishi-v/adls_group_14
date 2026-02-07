@@ -153,23 +153,36 @@ In this task, the test accuracy will be computed on the quantised and pruned mod
 
 ### Task 1: Per-Layer Bit Width Search
 
-In the original template code, all `LinearInteger` layers use the same hardcoded configuration (width=8, frac_width=4). We modified the search to let Optuna's TPESampler choose the width [8, 16, 32] and fractional width [2, 4, 8] independently for each layer. This configuration is as requested by the question. A graph of the improving model accuracy is shown below. On each Optuna trial, if the accuracy of the configuration is higher, the best configuration of the best model so far is updated. At the end only the best model is retained.
+In the original template code, all `LinearInteger` layers use the same hardcoded configuration (width=8, frac_width=4). We modified the search to let Optuna's `TPESampler` choose the width [8, 16, 32] and fractional width [2, 4, 8] independently for each layer. This configuration is as requested by the question. A graph of the improving model accuracy is shown below. On each Optuna trial, if the accuracy of the configuration is higher, the best configuration of the best model so far is updated. At the end only the best model is retained.
 
 ![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task1_search_progress.png)
 
 ### Task 2: Multi-Precision Type Search
 
-As requested in the question, the configuration search is then extended to include multiple precision types: `Integer`, `MinifloatDenorm`, `MinifloatIEEE`, and `Log` etc. The below graph shows the performance of these different precision types.
+As requested in the question, the configuration search is then extended to include multiple precision types: `LinearInteger`, `LinearMinifloatDenorm`, `LinearMinifloatIEEE`, and `LinearLog` etc. 
+
+* `LinearInteger` uses fixed-point arithmetic, where the total bit-width and the split between integer and fractional bits are explicitly controlled. This approach is useful because standard integer arithmetic hardware units can be used for basic operations. The main disadvantages are the limited dynamic range and the need for careful manual tuning of bit-widths. If the data spans a large range of values, fixed-point representations can quickly become unsuitable.
+
+* `LinearMinifloatIEEE` follows the IEEE-754 floating-point rules but with customisable bit-widths. Its main advantage is that it inherits the benefits of floating-point arithmetic, particularly automatic handling of very large and very small values through a wide dynamic range. However, when using non-standard bit-widths, it is less hardware-friendly, as it does not map as cleanly onto simple integer execution units.
+
+* `LinearMinifloatDenorm` is similar to `LinearMinifloatIEEE` but includes support for denormalised numbers. This improves the representation of very small values close to zero, reducing underflow effects. The disadvantages are additional complexity in both representation and hardware support.
+
+* `LinearLog` stores the logarithm of a value rather than the value itself. An advantage of this representation is that certain operations, such as multiplication, can be implemented as simple additions. The number line is logarithmically spaced, giving good relative precision for small values. However, values extremely close to zero cannot be represented, which makes this format unsuitable for such cases.
+
+The below graph shows the performance of these different precision types.
 
 ![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_search_progress.png)
 
-`MinifloatDenorm` achieves the best accuracy (86.02%), with `MinifloatIEEE` close behind (85.99%). To consider the case where a model could use a mix of all of these strategies, Optuna was configured to search a mix of these precision types. To give this run a higher chance of reaching an optimal model, 50 trials were used for this larger search space. Shown below is the graph of the improving accuracies against the trial index. 
+`LineaerMinifloatDenorm` achieves the best accuracy (86.02%), with `LinearMinifloatIEEE` close behind (85.99%). Our experiments also considers the case where a model could use a mix of all of these strategies, Optuna was configured to search a mix of these precision types. To give this run a higher chance of reaching an optimal model, 50 trials were used for this larger search space. Shown below is the graph of the improving accuracies against the trial index. 
 
 ![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_mixed_search_progress.png)
 
 Lets visualise the distribution of these different layer types in the final chosen best model:
 
-![Graph to show improving model accuracies as Optuna tries more models.](labs_media/tut6_task2_mixed_layer_dist.png)
+![Graph to show quantisation technique distribution.](labs_media/tut6_task2_mixed_layer_dist.png)
+
+This search focuses on maximising model accuracy, so compression techniques such as LinearMinifloatDenorm are preferred due to their higher compression ratios and improved numerical representation. Performance considerations are out of the scope. Consequently, inference time and other performance metrics should not be expected to be strengths of these model architectures.
+
 
 # Lab 4
 
